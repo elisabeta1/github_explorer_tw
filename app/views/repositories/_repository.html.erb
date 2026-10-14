@@ -1,0 +1,21 @@
+<article class="relative flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-blue-300 hover:shadow-md focus-within:ring-2 focus-within:ring-blue-500">
+  <header class="flex items-center gap-3">
+    <%= image_tag repo.owner_avatar, alt: "", loading: "lazy", class: "size-8 rounded-full" %>
+    <%# turbo_frame "_top": the card sits inside the results frame, so break out to a full page.
+        The after: pseudo-element stretches the link over the whole card. %>
+    <%= link_to repo.full_name, repository_path(repo.owner, repo.name),
+          data: { turbo_frame: "_top" },
+          class: "break-all font-semibold text-blue-700 outline-none after:absolute after:inset-0 after:content-['']" %>
+  </header>
+  <p class="line-clamp-3 text-sm text-gray-600"><%= repo.description.presence || "No description" %></p>
+  <footer class="mt-auto flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+    <% if repo.language %>
+      <span class="inline-flex items-center gap-1.5">
+        <span class="size-2.5 rounded-full" style="background: <%= language_color(repo.language) %>"></span><%= repo.language %>
+      </span>
+    <% end %>
+    <span title="Stars">★ <%= compact_number(repo.stars) %></span>
+    <span title="Forks">⑂ <%= compact_number(repo.forks) %></span>
+    <span>Updated <%= time_ago_in_words(repo.updated_at) %> ago</span>
+  </footer>
+</article>

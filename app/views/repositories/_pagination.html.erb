@@ -1,0 +1,6 @@
+<nav aria-label="Pagination" class="mt-6 flex items-center justify-between">
+  <% link_class = "rounded-lg border px-3 py-2 text-sm hover:bg-gray-50" %>
+  <%= result.page > 1 ? link_to("← Previous", repositories_path(request.query_parameters.merge(page: result.page - 1)), class: link_class) : tag.span %>
+  <span class="text-sm text-gray-500">Page <%= result.page %> of <%= result.total_pages %></span>
+  <%= result.page < result.total_pages ? link_to("Next →", repositories_path(request.query_parameters.merge(page: result.page + 1)), class: link_class) : tag.span %>
+</nav>

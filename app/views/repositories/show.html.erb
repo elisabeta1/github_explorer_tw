@@ -1,0 +1,113 @@
+<% content_for :title, "#{@repository.full_name} · GitHub Explorer" %>
+
+<div class="mx-auto w-full max-w-5xl px-4 py-8">
+  <%= link_to "← Back to results", back_to_search_path,
+        class: "text-sm font-medium text-gray-500 hover:text-gray-900" %>
+
+  <%# Header %>
+  <header class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+    <%= image_tag @repository.owner_avatar, alt: "", class: "size-16 shrink-0 rounded-xl" %>
+    <div class="min-w-0 flex-1">
+      <h1 class="break-words text-2xl font-bold sm:text-3xl">
+        <span class="font-normal text-gray-500"><%= @repository.owner %> /</span>
+        <%= @repository.name %>
+      </h1>
+      <% if @repository.archived %>
+        <span class="mt-2 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">Archived</span>
+      <% end %>
+      <% if @repository.description.present? %>
+        <p class="mt-2 text-gray-600"><%= @repository.description %></p>
+      <% end %>
+    </div>
+    <div class="flex shrink-0 flex-wrap gap-2">
+      <%= link_to "View on GitHub ↗", @repository.url, target: "_blank", rel: "noopener",
+            class: "rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700" %>
+      <%# Only http(s) links, so a homepage like "javascript:..." can't become a link. %>
+      <% if @repository.homepage&.start_with?("http") %>
+        <%= link_to "Website ↗", @repository.homepage, target: "_blank", rel: "noopener nofollow",
+              class: "rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold hover:bg-gray-50" %>
+      <% end %>
+    </div>
+  </header>
+
+  <%# Topics link back to a search for that topic %>
+  <% if @repository.topics.any? %>
+    <ul class="mt-4 flex flex-wrap gap-2">
+      <% @repository.topics.each do |topic| %>
+        <li>
+          <%= link_to topic, repositories_path(q: "topic:#{topic}"),
+                class: "rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100" %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%# Stats %>
+  <dl class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+    <% [["★ Stars", @repository.stars], ["⑂ Forks", @repository.forks],
+        ["Watchers", @repository.watchers], ["Open issues & PRs", @repository.open_issues]].each do |label, value| %>
+      <div class="rounded-xl border border-gray-200 bg-white p-4">
+        <dt class="text-xs text-gray-500"><%= label %></dt>
+        <dd class="mt-1 text-2xl font-bold" title="<%= number_with_delimiter(value) if value %>">
+          <%= value ? compact_number(value) : "—" %>
+        </dd>
+      </div>
+    <% end %>
+  </dl>
+
+  <div class="mt-6 grid gap-6 md:grid-cols-3">
+    <%# Languages %>
+    <section class="rounded-xl border border-gray-200 bg-white p-5 md:col-span-2">
+      <h2 class="font-semibold">Languages</h2>
+      <% if @details.languages.empty? %>
+        <p class="mt-3 text-sm text-gray-500">No languages detected.</p>
+      <% else %>
+        <div class="mt-4 flex h-2.5 overflow-hidden rounded-full bg-gray-100" role="img"
+             aria-label="<%= @details.languages.map { "#{_1.name} #{_1.percent}%" }.join(", ") %>">
+          <% @details.languages.each do |lang| %>
+            <span style="width: <%= lang.percent %>%; background: <%= language_color(lang.name) %>"></span>
+          <% end %>
+        </div>
+        <ul class="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+          <% @details.languages.each do |lang| %>
+            <li class="flex items-center gap-2">
+              <span class="size-2.5 shrink-0 rounded-full" style="background: <%= language_color(lang.name) %>"></span>
+              <span class="font-medium"><%= lang.name %></span>
+              <span class="text-gray-500"><%= lang.percent %>%</span>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+    </section>
+
+    <%# Details %>
+    <section class="rounded-xl border border-gray-200 bg-white p-5">
+      <h2 class="font-semibold">Details</h2>
+      <dl class="mt-3 space-y-2 text-sm">
+        <div class="flex justify-between gap-4"><dt class="text-gray-500">License</dt><dd><%= @repository.license.presence || "None" %></dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-gray-500">Default branch</dt><dd class="font-mono text-xs"><%= @repository.default_branch %></dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-gray-500">Created</dt><dd><%= @repository.created_at&.to_date&.to_fs(:long) %></dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-gray-500">Last push</dt><dd><%= "#{time_ago_in_words(@repository.pushed_at)} ago" if @repository.pushed_at %></dd></div>
+      </dl>
+    </section>
+  </div>
+
+  <%# Contributors load on their own, only when this section scrolls into view
+      (loading: :lazy), so the page itself costs 2 GitHub calls instead of 3.
+      The placeholder below shows until the frame's content arrives. %>
+  <section class="mt-6 rounded-xl border border-gray-200 bg-white p-5">
+    <h2 class="font-semibold">Top contributors</h2>
+    <%= turbo_frame_tag "contributors", src: repository_contributors_path(@repository.owner, @repository.name),
+          loading: :lazy do %>
+      <ul class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6" aria-hidden="true">
+        <% 6.times do %>
+          <li class="flex animate-pulse flex-col items-center gap-2 p-3">
+            <span class="size-10 rounded-full bg-gray-200"></span>
+            <span class="h-3 w-16 rounded bg-gray-200"></span>
+          </li>
+        <% end %>
+      </ul>
+      <span class="sr-only">Loading contributors…</span>
+    <% end %>
+  </section>
+</div>

@@ -1,0 +1,24 @@
+<%# Rendered into the "contributors" Turbo Frame on the show page. Errors show
+    here too, so a failure only affects this section, not the whole page. %>
+<%= turbo_frame_tag "contributors" do %>
+  <% if @error %>
+    <p class="mt-3 text-sm text-gray-500">
+      <%= @error.is_a?(GithubConnector::RateLimitError) ? github_error_message(@error) : "GitHub couldn't provide the contributor list for this repository." %>
+    </p>
+  <% elsif @contributors.empty? %>
+    <p class="mt-3 text-sm text-gray-500">No contributors yet.</p>
+  <% else %>
+    <ol class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+      <% @contributors.each do |person| %>
+        <li>
+          <%= link_to person.url, target: "_blank", rel: "noopener",
+                class: "flex flex-col items-center gap-1 rounded-lg p-3 text-center text-sm hover:bg-gray-50" do %>
+            <%= image_tag person.avatar_url, alt: "", loading: "lazy", class: "size-10 rounded-full" %>
+            <span class="max-w-full truncate font-medium"><%= person.login %></span>
+            <span class="text-xs text-gray-500"><%= pluralize(number_with_delimiter(person.contributions), "commit") %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
+  <% end %>
+<% end %>

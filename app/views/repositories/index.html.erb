@@ -1,0 +1,24 @@
+<main class="mx-auto max-w-6xl px-4 py-6">
+
+  <h1 class="text-2xl font-bold sm:text-3xl">GitHub Repository Explorer</h1>
+
+  
+  <%= form_with url: repositories_path, method: :get,
+        data: { controller: "search", turbo_frame: "results", turbo_action: "advance" },
+        class: "mt-6 flex flex-col gap-3 sm:flex-row" do |f| %>
+    <%= f.search_field :q, value: @query, placeholder: "Search repositories…",
+          autofocus: true, aria: { label: "Search repositories" },
+          data: { action: "input->search#queue", search_target: "query" },
+          class: "flex-1 rounded-lg border-gray-300" %>
+    <%= f.select :language, GithubService::LANGUAGES, { selected: @language, include_blank: "Any language" },
+          data: { action: "change->search#submit" }, class: "rounded-lg border-gray-300" %>
+    <%= f.select :sort, GithubService::SORTS, { selected: @sort },
+          data: { action: "change->search#submit" }, class: "rounded-lg border-gray-300" %>
+    <noscript><%= f.submit "Search" %></noscript>
+  <% end %>
+
+  <%= turbo_frame_tag "results", data: { turbo_action: "advance" },
+        class: "mt-6 block transition-opacity aria-busy:opacity-50" do %>
+    <%= render "results", query: @query, result: @result, error: @error %>
+  <% end %>
+</main>

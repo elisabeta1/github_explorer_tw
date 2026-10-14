@@ -1,0 +1,13 @@
+<% content_for :title, "#{github_error_title(@error)} · GitHub Explorer" %>
+
+<div class="mx-auto w-full max-w-5xl px-4 py-8">
+  <%= link_to "← Back to results", back_to_search_path,
+        class: "text-sm font-medium text-gray-500 hover:text-gray-900" %>
+
+  <div role="alert" class="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-6 text-amber-900">
+    <h1 class="text-lg font-semibold">
+      <%= github_error_title(@error) %>
+    </h1>
+    <p class="mt-1"><%= github_error_message(@error) %></p>
+  </div>
+</div>

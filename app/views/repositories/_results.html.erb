@@ -1,0 +1,19 @@
+<% if error %>
+  <div role="alert" class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900">
+    <%= github_error_message(error) %>
+  </div>
+<% elsif result.repositories.empty? %>
+  <p class="text-gray-500">No repositories match “<%= query %>”.</p>
+<% else %>
+  <p class="mb-4 text-sm text-gray-500">
+    <% if query.blank? %>
+      Popular repositories
+    <% else %>
+      <%= number_with_delimiter(result.total_count) %> results for “<%= query %>”
+    <% end %>
+  </p>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <%= render partial: "repositories/repository", collection: result.repositories, as: :repo %>
+  </div>
+  <%= render "pagination", result: %>
+<% end %>
