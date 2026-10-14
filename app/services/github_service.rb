@@ -12,7 +12,7 @@ class GithubService
 
   Result = Data.define(:repositories, :total_count, :page) do
     def total_pages
-      [(total_count / PER_PAGE.to_f).ceil, MAX_PAGE].min
+      [ (total_count / PER_PAGE.to_f).ceil, MAX_PAGE ].min
     end
   end
 
@@ -30,12 +30,12 @@ class GithubService
     sort     = SORTS.value?(sort) ? sort.presence : nil
     page     = page.to_i.clamp(1, MAX_PAGE)
 
-    q = [query, ("language:#{language}" if language)].compact_blank.join(" ")
+    q = [ query, ("language:#{language}" if language) ].compact_blank.join(" ")
     # GitHub rejects an empty q with 422, so with no search show popular repos.
     q = DEFAULT_QUERY if q.blank?
     params = { q:, sort:, order: "desc", per_page: PER_PAGE, page: }.compact
     body = fetch("/search/repositories", params)
-  
+
     Result.new(repositories: body["items"].map { Repository.from_api(_1) },
                total_count: body["total_count"], page:)
   end
@@ -63,7 +63,7 @@ class GithubService
   end
 
   def fetch(path, params = {})
-    Rails.cache.fetch(["github", path, params], expires_in: 10.minutes) do
+    Rails.cache.fetch([ "github", path, params ], expires_in: 10.minutes) do
       @connector.get(path, params)
     end
   end
